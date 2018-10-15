@@ -47,3 +47,4 @@ Everyone's use cases are different but this has worked well for my company.
 - Lambda While in the free tier, dirt cheap to free. If performance is not an issue and workloads are light to medium we prefer lambda.
 - When we hit performance constraints we move to 2. Fargate Fargate allows us to execute long running taske similar to lambda but for us these are usually tasks > lambda 5 min window. These usually run in the background If performance and uptime is of utmost importance 3. ECS Its not kubernetes but it gets the job done.
 - We use a mixture of terraform and serverless framework depending on the use case.
+ 
