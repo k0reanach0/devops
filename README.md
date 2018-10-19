@@ -48,3 +48,11 @@ Everyone's use cases are different but this has worked well for my company.
 - When we hit performance constraints we move to 2. Fargate Fargate allows us to execute long running taske similar to lambda but for us these are usually tasks > lambda 5 min window. These usually run in the background If performance and uptime is of utmost importance 3. ECS Its not kubernetes but it gets the job done.
 - We use a mixture of terraform and serverless framework depending on the use case.
  
+#### 5 independent cloud services
+  - backblaze for storage
+  - cloudflare/other cdn
+  - databricks/floydhub for ml
+  - packet.net for everything else
+  - Sendgrid
+  - Gitlab
+  - PagerDuty
