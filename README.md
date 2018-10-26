@@ -56,3 +56,22 @@ Everyone's use cases are different but this has worked well for my company.
   - Sendgrid
   - Gitlab
   - PagerDuty
+
+I would suggest that you pick something (maybe a statically generated blog) and start using these technologies to host it (and learning as you go). I'd suggest this order:
+
+- Buy a VPS (shared kernel) -- just to see what people in environments where shared kernel is OK (this is normally the usecase of wordpress/other framework centric plans), note what you can and can't install, how you can get past requirements by locally building software from source, etc.
+- Buy a VPS (KVM) -- know the difference between KVM (along the way you'll probably learn about qemu and virtualbox, know how they differ)
+- Buy a full dedicated server -- learn a tiny bit about what happens when you need beefier hardware (I recommend hetzner's robot marketplace), and the benefits of being able to run it yourself.
+- Buy a domain name (you can use AWS or Cloudflare or my personal favorite Gandi.net)
+- Learn about A/AAAA/CNAME/TXT/MX records, enough to point your domain name at the IP for the server you bought, for the appropriate subdomain(s)
+- Deploy the blog (or whatever project you choose) to the server (whichever one you chose) by copying the code and running a process that binds to port 80
+- Deploy the blog to the server by running a process that copies the code, runs it but binds to another port (let's say 8080 or 8000), and is reverse-proxied to by NGINX (which is listening @ port 80)
+- Deploy the blog to the server with the NGINX-proxied setup, but this time use systemd to make the process an enabled service that starts up when the server starts -- you should be able to restart your server now and have the blog come up.
+- Deploy the blog to the server by running the process with docker (remember, docker is just sandboxed/isolated processes). For extra points here, figure out how to make docker and systemd process management to play nice, CoreOS has some good blog posts on this IIRC.
+- To flex your Docker chops, have NGINX actually run from a container (not as an installed system-level program), pointing at the other container.
+- Completely wipe/reset your server, and make your way to the NGINX-powered setup with Ansible. The only part Ansible might not be able to do right away is getting you a machine, but ansible has provisioning so that's kind of a lie (but one that's kind of OK to tell yourself at first).
+- Attempt to start learning Kubernetes by reading through the concepts, setting up a cluster the hard way
+- Get your blog up and running on k8s
+- Teardown your cluster completely, then use kubeadm to rebuild it -- you should be writing config in a manner that once you have a cluster up you can just point at it, and run scripted kubectl commands .
+- Teardown your cluster completely, build it back up again kops to try on AWS.
+- Try and deploy an application with storage requirements/more ambitious requirements.
