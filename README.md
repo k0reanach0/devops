@@ -75,3 +75,15 @@ I would suggest that you pick something (maybe a statically generated blog) and 
 - Teardown your cluster completely, then use kubeadm to rebuild it -- you should be writing config in a manner that once you have a cluster up you can just point at it, and run scripted kubectl commands .
 - Teardown your cluster completely, build it back up again kops to try on AWS.
 - Try and deploy an application with storage requirements/more ambitious requirements.
+
+
+My list would be:
+
+- Ansible
+- Prometheus
+- Kubernetes
+- CI/CD (not just CI/CD, but specifically Jenkins declarative Pipelines)
+  - despite downvotes, jenkins is what you’ll be working with in 60+% of companies. at least learn your way around.
+- Ansible - easy learning curve. Python - as above, and allows extension of Ansible. CentOS and Ubuntu - two major players. Docker Terraform AWS + GCP (in equal measures)
+- Terraform is darn fun, I would learn it first
+
