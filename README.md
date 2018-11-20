@@ -182,4 +182,38 @@ Containers are smaller and make it much easier to deploy an app consistently on 
 
 I normally advocate for containers because most apps don't need an entire VM to run on, which allows development teams to spend less time worrying about hardware and infrastructure and more time on making apps better. However, making apps that work well in an ecosystem like this involves cultural changes around the way teams typically write and deploy software. Because of this and the fact that most big companies are already deeply invested in virtualization, I usually recommend keeping VMs in the short term (using something like Vagrant to manage their deployment) and focussing on making "the process" right so that the move to containers "just makes sense."
 
+Hey buddy. Don't stress, you are already off to a good start. Terraform / AWS go hand in hand. 
+
+I thought the AWS Solutions Architecture Associate course was a good intro.
+
+Terraform is essentially just a way to not use the AWS console. It has almost no syntax to learn and my entire usage is along the lines of:
+
+Need to launch an Ec2 instance, Google terraform ec2 definition, copy paste definition, change a few things.
+
+To me, the hardest part of all of this is the networking.
+
+Kubernetes is a bitch but actually not that crazy. Standalone docker experience is a must before starting to use kubernetes.
+
+It’s easy to become overwhelmed. And you cannot learn everything. Start with the basics. Learn how to provision basic infrastructure with Terraform. This will also teach you some aspects of Azure or AWS. Then focus on deploying a simple WebApp. Then start building on that. Deploy Infrastructure > WebApp> Datasource and configure with Ansible. Real world scenarios are easier to get focus on.
+
+Also, I see myself using Ansible less and less because immutable infrastructure. I say this so you understand that you will learn a tool that you will end up never using at all after a few years.
+
+Don't forget monitoring and log management ELK etc, CI/CD servers like Jenkins etc... very important too.
+
+First continue to learn ansible and get to the point where you can right a custom role for some app. Learn to make it generic so anyone can add their vars and its custom for their setup
+
+From there take on the other things like cicd/terraform/docker and kubernetes.
+
+Remember some of us have been doing this for 10+ years. We didn't learn everything all at once. The key is to always keep learning. Sometimes for me I break things up. I do it in baby steps and build to trying to master something.
+
+
+The basic idea is to build an artifact in one stage and then deploy it to staging environment and then to production. Now whether this artifact is a docker image or anything else is up to you.
+
+Preferably, there should be just one build stage and then multiple deploy stages using the same artifact, to make sure, you're not deploying different versions for staging and production.
+
+So for your use case, this would probably mean something like:
+
+build -> test -> build-image -> deploy-staging -> deploy-prod
+
+This is the very basic idea and could be extended to suit your needs. What's your use case, are you deploying docker images already?
 
