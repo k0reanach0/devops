@@ -281,3 +281,20 @@ Part of DevOps is taking that XML config updating per environment and deploying 
 
 No, at my work we use powershell and teamcity. All of the code is source controlled and the scripts we write deploys all the code. We just tell it what environment and press deploy. Obviously there's a learning curve but when you focus on automating each piece it becomes repeatable and plug and play, the key is organization and making sure you're doing things the cleanest way possible in code and in process. It does take a DevOps skill set to get that going properly though.
 
+This is not a dumb question, at ALL. This shit is really complicated, and don't let blowhards gaslight you into believing that they all understand it, just because they can use it. So the word "container" doesn't mean anything super specific - which doesn't help. Broadly speaking, you can think of containers like virtual machines that share the same running kernel. That last part is the important one - since it's pretty mind-bending and novel. For the sake of your sanity I'm gonna limit this to Docker. I'll write all this out about halfway for my own benefit, since I need to train my own team up on this stuff in the next few months.
+
+The Linux kernel added a few very interesting new features over the last several years, and containers are a nice "shiny" way to use them all at once. Those features are Namespaces, CGroups, and seccomp-bpf. Together with chroot, which you might already know, containers happen. CGroups let you fence off CPU resources for a process.(if you're old enough to remember ye olde Renice, this is like that on steroids), Namespaces let you do cool stuff like have 2 PID 1s(!), 2 applications running on the same port(!) and something to do with the filesystem which made my brain hurt when I tried to make sense of it. seccomp-bpf just fences off what system calls your process can make(your container, for instance, cannot connect itself to the network or reboot its host). Chroot limits a user's filesystem access by pretty much making a "jail" where `/` is a new location of your choice. As you might imagine, all that magic comes at the expense of abstractions and translations for networking, filesystems, and DNS. I'd study Docker networking separately once you get the nuts and bolts. (then envision seven more levels of abstraction hell, and that's Kubernetes networking)
+
+​
+
+So all that was Linux...which is the primary runtime for containers. But people don't write code on Linux most of the time - they use MacOSX or Windows. The MacOSX runtime is a little closer to native since it's using the Darwin/BSD kernel...but Windows is an entirely different thing. Remember how I said they share a running kernel? So Windows had to implement it's own Linux subsystem to have a running kernel for Linux containers in Docker to access. This stuff is so important to the business that Microsoft added Linux to Windows.
+
+Generally speaking, the primary allure of Docker is the same one that we've all heard a ZILLION times in this business - "write once and run anywhere!" Except this time it's pretty much true!
+
+The usual lifecycle looks like this:
+
+Write your application in an IDE and make it work.
+Use a "Dockerfile" to provide instructions for how to make that application work in a container(pull these dependencies, open this port, start this process, etc).
+Build an image with this and push it to a container repository, like Dockerhub, that AWS one, or Google Container Registry. Use a tag to indicate a version or some other tiny bit of metadata.
+You or your ops team(probably via Jenkins) then pull that image(often based on tag)and deploy it in Kubernetes or one of the Docker things like Compose or Swarm. At that particular level, even more abstraction and fun happens, but do not look into this abyss yet or you will turn into a pillar of salt.
+
