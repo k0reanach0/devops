@@ -217,3 +217,67 @@ build -> test -> build-image -> deploy-staging -> deploy-prod
 
 This is the very basic idea and could be extended to suit your needs. What's your use case, are you deploying docker images already?
 
+Terraform / AWS go hand in hand. I thought the AWS Solutions Architecture Associate course was a good intro.
+
+Terraform is essentially just a way to not use the AWS console. It has almost no syntax to learn and my entire usage is along the lines of:
+
+Need to launch an Ec2 instance, Google terraform ec2 definition, copy paste definition, change a few things.
+
+To me, the hardest part of all of this is the networking.
+
+Kubernetes is a bitch but actually not that crazy. Standalone docker experience is a must before starting to use kubernetes.
+
+It’s easy to become overwhelmed. And you cannot learn everything. Start with the basics. Learn how to provision basic infrastructure with Terraform. This will also teach you some aspects of Azure or AWS. Then focus on deploying a simple WebApp. Then start building on that. Deploy Infrastructure > WebApp> Datasource and configure with Ansible. Real world scenarios are easier to get focus on.
+
+google SRE free and DevOps handbook.
+
+I would suggest spinning up your own dev environment in AWS. Think gitlab, Jenkins, maybe the $10 license of jira/confluence, plus some way to connect in. Maybe do logging and alerting too. Take notes, then tear it down. Then automate the same setup with ansible and packer, or similar tech. Then break it down. Then build it with terraform. Now tearing it down and building it is easy.
+
+Now maybe set up a kubernetes cluster using kubernetes the hard way...
+
+Note that getting to the end of this may take a long time. Don’t get discouraged, just setting up servers and securing them is really good practice.
+
+And don’t let the long time gruff veterans get to you ;) This stuff isn’t magic. It’s just hard.
+
+FYI, dont leave things up for a long time because you can rack up quite an AWS bill :)
+
+Last— this leaves out programming. I would start picking up a programming language, be it python or ruby or java. That’s sort of out of the scope of this, but I learn things the hands on way, so if you do too just build, build, build.
+
+First continue to learn ansible and get to the point where you can right a custom role for some app. Learn to make it generic so anyone can add their vars and its custom for their setup
+
+From there take on the other things like cicd/terraform/docker and kubernetes.
+
+Remember some of us have been doing this for 10+ years. We didn't learn everything all at once. The key is to always keep learning. Sometimes for me I break things up. I do it in baby steps and build to trying to master something.
+
+Personally, I would spend the budget on a few months of cloud spend on AWS if that’s your platform of choice - do check out GKE in Google Cloud if possible though if you’re interested in k8s. Everything that you need to get started on these things are freely available, but the experience using them is priceless.
+
+Create a simple API backend in Go backed by a database and/or memory store of choice; Deploy it to AWS in a managed EKS cluster or create a cluster yourself if you really want a challenge; Use and connect to managed AWS databases (e.g. RDS) or run it in the cluster; Manage the infrastructure via Terraform; Handle its secrets via a Vault service in the cluster; Monitor it with Prometheus; Load test it to breaking point, monitor it and learn to prevent and recover it; Performing rolling updates to the app and test canary deployments; Update and scale the infrastructure via Terraform or set it up to be automatically scalable, etc.
+
+Spending time doing the above will typically teach you much more than any course or workshop in my opinion.
+
+To expand on his excellent suggestion.. Incorporate CI/CD into your learning process while you do it. Build, test, tag, push, and deploy all your services using Jenkins, Drone, Travis, etc.
+
+And there are a ton of really good free resources on the net (e.g., youtube, katacoda.com, kubernetes-the-hard-way). But to be honest, like he said, if you are somewhat familiar with the stuff, just digging into the docs and getting hands on building stuff is the best way to learn.
+
+And if you want to stay cloud agnostic, use the money to build a small lab. Enough to build a 3 to 4 node cluster (use spare/used pc's, raspberry pi's, ebay rack-mount servers, etc), a 5-port switch and some network cables.
+
+For example, I bought a 4-blade 2u supermicro box for $250 off of ebay, a cheap 8 port 10/100 switch, and a ubiquiti EdgeRouter x. The server is very loud of course, so maybe not great for the house, but you get the idea. I frequently tear down and rebuild hosts to the point that I am starting to look into PXE booting to make things easier.
+
+I'm AWS certified. What I did to pass the exam: Use the AWS Free trial if you didn't. Almost everything can be learned using that tier.
+
+If you want courses: https://www.udemy.com/aws-certified-solutions-architect-associate best starting course ever.
+
+The problem with AWS is the amount of tech involve. I use AWS everyday at my job and the half of the services are a mistery for me :/
+
+For Go (my main language) and Vault (little knowledge, we use Ansible Vault which is not the same but covers our needs), don't waste a dime. The docs are awesome.
+
+Kubernetes. Spend money on cloud providers. Docker and Kubernetes have amazing docs.
+
+People keep talking about dependency issues but that’s not why every modern company is shifting their workload to orchestrated containers. Yes, Docker lowers the friction between developer and production environments by ensuring the environment devs code in is exactly the same as the environment code runs on in production. That’s true.
+
+But the main reason to use containers is that, if you want to effectively run microservices and use your cloud compute cost-effectively, you really have to use container orchestration (kubernetes, nomad, mesos). Here’s an analogy. Container orchestration is kind of like an OS for your cloud. Just as a CPU efficiently schedules processes by interacting with various resources in your computer, Kubernetes efficiently schedules containers (which are essentially single process if you’re doing microservices correctly) across your machines in the cloud. You need containers because there’s no other way to kill a process or let it expire on one machine and then revive it on another machine at a different time.
+
+Part of DevOps is taking that XML config updating per environment and deploying code the same way every time through your CICD pipeline. A GUI is pointless. Everything should be organized, and repeatable with very little user interaction, besides maintaining the deployment code base and hitting the deploy button in your CICD tool of choice.
+
+No, at my work we use powershell and teamcity. All of the code is source controlled and the scripts we write deploys all the code. We just tell it what environment and press deploy. Obviously there's a learning curve but when you focus on automating each piece it becomes repeatable and plug and play, the key is organization and making sure you're doing things the cleanest way possible in code and in process. It does take a DevOps skill set to get that going properly though.
+
