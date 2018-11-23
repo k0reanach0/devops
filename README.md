@@ -298,3 +298,15 @@ Use a "Dockerfile" to provide instructions for how to make that application work
 Build an image with this and push it to a container repository, like Dockerhub, that AWS one, or Google Container Registry. Use a tag to indicate a version or some other tiny bit of metadata.
 You or your ops team(probably via Jenkins) then pull that image(often based on tag)and deploy it in Kubernetes or one of the Docker things like Compose or Swarm. At that particular level, even more abstraction and fun happens, but do not look into this abyss yet or you will turn into a pillar of salt.
 
+The basic idea is to build an artifact in one stage and then deploy it to staging environment and then to production. Now whether this artifact is a docker image or anything else is up to you.
+
+Preferably, there should be just one build stage and then multiple deploy stages using the same artifact, to make sure, you're not deploying different versions for staging and production.
+
+So for your use case, this would probably mean something like:
+
+build -> test -> build-image -> deploy-staging -> deploy-prod
+
+This is the very basic idea and could be extended to suit your needs. What's your use case, are you deploying docker images already?
+
+Add an integration test stage after stage deploy, and a prod test stage after prod deploy, and you're golden!
+
