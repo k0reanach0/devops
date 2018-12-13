@@ -310,3 +310,16 @@ This is the very basic idea and could be extended to suit your needs. What's you
 
 Add an integration test stage after stage deploy, and a prod test stage after prod deploy, and you're golden!
 
+Sure, it's quicker and easier for you, but what happens when you are not there? It's much easier for another engineer to make sense of what's going on when we can read through your playbook or diff your terraform state. And this is especially important when things go to hell - which usually happens when you are on vacation.
+
+By describing your infrastructure as code: - we can commit and track changes over time (we can diff/blame changes to discover what broke foo) - we can automate/duplicate/scale our environments easily - we can recover from disasters much quicker and with less errors - we reduce the amount of time spent figuring out what change broke what dependency
+
+and the list goes on...
+
+More work up front == less work at 3am on a Saturday night, half-drunk, trying to remember how to re-enable ipv4 forwarding, fixing iptable rules, while we man ln because, after nearly 20 years, we still cannot remember the damn order.
+
+Edit: Also, you can still build your stuff manually, and then run a tool like terraforming to help speed things up. There are also a ton of templates out there to work from.
+
+[DevOps Checklist](https://cdn-images-1.medium.com/max/1000/1*-nYI19LZZKDQjdAx0qhlFw.png)
+
+[DevOps Article](https://blog.gruntwork.io/5-lessons-learned-from-writing-over-300-000-lines-of-infrastructure-code-36ba7fadeac1)
