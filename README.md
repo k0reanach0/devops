@@ -323,3 +323,80 @@ Edit: Also, you can still build your stuff manually, and then run a tool like te
 [DevOps Checklist](https://cdn-images-1.medium.com/max/1000/1*-nYI19LZZKDQjdAx0qhlFw.png)
 
 [DevOps Article](https://blog.gruntwork.io/5-lessons-learned-from-writing-over-300-000-lines-of-infrastructure-code-36ba7fadeac1)
+
+[DevOps for Startups](https://blog.thesparktree.com/devops-for-startups)
+
+We use Puppet to manage everything that isn’t a container.
+
+As /u/mlvnd said, Puppet is a configuration management tool like Ansible, Bolt, Chef, Bladelogic, etc.
+
+The main difference between these tools is whether they follow a push model or a pull model. Under a push model, the tool doesnt do anything until you tell it to. Under the pull model, the tool enforces a configuration you give it and enforces that state now and forever.
+
+Puppet and Chef follow a pull model, while Ansible, Bolt, and Bladelogic follow a push model.
+
+Push models are more flexible and dont necessarily require an agent (some do have an agent regardless). But it can be extremely hard to scale to a large number of servers with a push model.
+Pull models scale beautifully, but require an agent on every server, and are not that flexible. Pull models work best when you have a bunch of homogeneous servers in play. If every server you have is a snowflake, then pull will be hard.
+I’ve used both models before and I greatly prefer the pull model over push. But in certain situations, a pull model just doesnt work and you have to resort to a push. So I use Bolt to do that wierd push situations, and Puppet for everything else.
+
+would it be better to build some custom docker images for this?
+
+Are you thinking of creating a single Docker image that runs everything? If so, forget about it. You should use several images in conjunction, each with its own distinct service.
+
+If you're thinking of scaling then Kubernetes is going to work better for you. Bear in mind though that it'll be a steep learning curve if you're just starting with containers (but worth it IMO). Try to use Helm charts, they automate most of the deployment boilerplate. There's even LAMP and Wordpress charts. If you go this route you can also easily install Prometheus/Grafana for in-cluster monitoring.
+
+Logging: Were you thinking of running a separate ELK stack per client, or a single all-in-one one? What is your budget (money and time) for maintaining it? If your data flow is relatively low you should consider Elastic Cloud. You can also ship your kubernetes metrics to your ELK stack and have metrics and logging in a single dashboard (where you can correlate them). Elastic Cloud also introduced multitenant features, in case you intend to share access with your clients.
+
+Both ansible and docker work well together... and make up for each other's deficiencies.
+
+Docker does great with taking care of version control, since most community ansible roles only do well with assembling the latest version of stuff without putting in a ton of extra work to take care of version pinning.
+
+Ansible does a great job of templating all those config files you're managing by hand now. It can also handle a lot of the orchestration features that docker seems to have been lacking, though I've really been digging the new docker stack stuff that allow you to pin containers to specific volumes on instances and scale out based on node labels. Quite helpful for making sense of small clusters without going too crazy with rexray or other clustered storage for stateful services.
+
+Together they let you build upon what you already know and solve small problems one at a time and keep things up to date without forcing you to upgrade before you're ready to put in the time.
+
+I'm not going to say too much about k8s, other than I haven't had much luck running through the basic tutorials. Maybe I'm just not smart enough to make k8s clusters work, but the people who are seem to end up writing extensive blog posts about all the fancy custom contortions they had to spend some extra weeks on to achieve container autoscaling Nirvana. Even the main k8s evangelists from RedHat / CoreOS have been admitting that k8s isn't (yet) the silver bullet for every challenge, particularly when it comes to stateful services.
+
+Poster: need to create a website for my grandma's flower shop. Help!
+
+This sub: ok, you need AWS, Docker, terraform, packer, kubernetes, kops, helm, Calico, Istio, Rook, Jenkins, elasticsearch, and logstash. Don't forget a Golang Lambda as a custom authenticator for the API gateway. Good luck!
+
+FML...
+
+Ansible is a good fast solution to save you time today and is quick to implement.
+
+A container strategy with docker and kube will take time to learn and understand and refine but is the obvious long term robust option but much more involved in setting up.
+
+I was in the same situation as you are. You can leverage both Ansible and Docker for your scenario. I wrote about it a while back. I did it for Drupal and DigitalOcean, so it might be comparable for your context :)
+
+Here's the gist of it.
+
+Docker can be used to build immutable images for every build/deployment. Ansible can be used to deploy these images to your servers. You can hook the whole workflow with Gitlab CI pipeline so that its automated for the most part from the "git push" stage.
+
+You can use Docker to run the setup in production as well, but I started with simple docker without any orchestration(like Swarm or Kubernetes). That way, you can gracefully move up the devops ladder.
+
+Bonus: You can have production parity setup in your local as well and maintain different sets of docker compose files. Why's this a big deal? It's easy to setup your local environment if you are using docker.
+
+I haven't done monitoring, self-healing and logging but it wouldn't be too hard to add in this workflow. I do have data recovery step where it takes a DB backup at a predestined location before every deployment.
+
+You can easily replicate this workflow for each site and tailor it individually if needed.
+
+I would use terraform + Ansible + Docker to help separate customers by VM for better security.
+
+Terraform so you turn up new VMs, and Ansible and Docker to make OPs life better.
+
+LOL, just create an ansible recipe that puts everything in a single host. If one of your sites will start to grow, you can run it on more powerful machine, if you're start hitting limits then you can then separate mysql and place it on another host. If that's not enough you can add caching between mysql and your application. If that's not enough you can split your application into smaller components and each on a different machine and do load balancing.
+
+It all supposed to be done iteratively as you grow, since you said you're hosting many sites I'm guessing you probably WILL NEVER hit limitations and most likely you could actually even host multiple sites from a single machine.
+
+Docker/k8s might be good to be something to play with, but based on your description is not applicable. k8s supposed to give power to developers so they don't need to deal with infrastructure people to do deployment, in your case you have full control over hardware, you're the infrastructure person as well, so IMO if you want to use it is for your own benefit and in your case it most likely make things harder than they need to be (k8s solves many issues but also introduces brand new ones), but you can learn more about docker and kubernetes.
+
+I am using both. Ansible replaces Dockerfile in some cases. That's a legacy, but I love it since I am not forced to use Docker at all if I ever need. Using Ansible I could provision bare metal box if I need.
+
+Ansible and Docker solve different problems, but used in conjunction, they can definitely work well for your implementation.
+
+Here's my 2¢:
+
+Ansible should be used to manage your configs, and make sure they're consistent across replicas. You can also let it do some of the boilerplate config changes that apply to all of your clients sites.
+
+Docker should be used to standardize your base services (nginx, PHP, etc). Definitely modularize this part rather than one custom container that has all services in it. Also, Docker compose can help you tie all these services together to form the overall platform that serves all of your sites.
+
