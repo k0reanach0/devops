@@ -1,0 +1,129 @@
+# Because the public ip of the NGinx server
+# is tossed and replaced with the elastic IP
+# we have to use the 'nginx_elastic_ip' 
+# role
+---
+- hosts: nginx_elastic_ip
+  become: yes
+  vars:
+    website_server_fqdn: 127.0.0.1
+    dev_server_fqdn: 127.0.0.1
+    test_server_fqdn: 127.0.0.1
+    prod_app_lb_fqdn: 127.0.0.1
+    cert_bot_email: admin@mywebsite.com
+    cert_domains:   
+      - www.mywebsite.com
+      - mywebsite.com
+      - prod.mywebsite.com
+      - test.mywebsite.com
+      - dev.mywebsite.com
+      
+  tasks:       
+    - name: "FIX: Ubuntu 16.04 LTS doesn't come with certain modules, required by ansible"
+      raw: apt-get install python-minimal aptitude -y
+      changed_when: false
+      
+    - name: Install Python 2.x
+      raw: test -e /usr/bin/python || (apt update && apt install -y python-simplejson)
+      register: test
+      changed_when: test.stdout
+      
+    - name: "Update the apt caches"
+      raw: apt-get update
+      changed_when: false
+      
+    - name: Handle the grub menace
+      raw: >
+          DEBIAN_FRONTEND=noninteractive apt-get -y -o 
+          DPkg::options::="--force-confdef" -o 
+          DPkg::options::="--force-confold"  
+          install grub-pc  
+      changed_when: false
+      
+    - name: Upgrade packages
+      apt: upgrade=dist      
+      
+    - name: Install required software
+      apt: name={{ item }} state=present
+      sudo: yes
+      with_items:
+        - lua-zlib
+        - nginx-extras
+        - software-properties-common
+        - fail2ban
+      register: nginxinstalled
+      notify:
+        - start nginx
+
+    - name: Copy Nginx Lua Deflate
+      copy: src=~/environment/ansible/NGinx/resources/inflate_body.lua dest=/usr/share/nginx/inflate_body.lua mode=644
+      notify:
+        - restart nginx
+
+    - name: Add NGinx Site Config
+      when: nginxinstalled|success
+      register: nginxconfig
+      template: src=~/environment/ansible/NGinx/resources/nginx-template.conf.j2 dest=/etc/nginx/nginx.conf owner=root group=root
+      notify:
+        - restart nginx
+    
+    - name: Add the Certbot repository
+      apt_repository:
+        repo: 'ppa:certbot/certbot' 
+        update_cache: yes
+      
+    - name: Install the certbot software
+      apt: name={{ item }} state=present
+      sudo: yes
+      with_items:
+        - python-certbot-nginx
+        
+    - name: Check if certificate already exists.
+      stat:
+        path: /etc/letsencrypt/live/{{ item }}/cert.pem
+      with_items: "{{ cert_domains }}"  
+      register: letsencrypt_cert
+
+    - debug:
+        var: letsencrypt_cert
+        verbosity: 2
+
+    - name: Stop services to allow certbot to generate a cert.
+      service:
+        name: nginx
+        state: stopped
+      when:
+        - not item.stat.exists
+      with_items: "{{ letsencrypt_cert.results }}"
+
+    - name: Register the certbot software
+      raw: certbot register --agree-tos --email {{cert_bot_email}} -n
+      register: certbot_register
+      changed_when: certbot_register.stdout
+      ignore_errors: yes
+      
+    - debug:
+        msg: "{{ letsencrypt_cert.results | selectattr('stat', 'defined') | map(attribute='stat') | selectattr('exists', 'equalto', False) | list | length > 0 }}"
+      
+    - name: Create the certs
+      raw: > 
+            certbot --nginx --noninteractive --agree-tos --redirect --expand -d {{ cert_domains.0 }} -d {{ cert_domains.1 }} -d {{ cert_domains.2 }} -d {{ cert_domains.3 }} -d {{ cert_domains.4 }}
+      register: certbot_create
+      when:
+        - letsencrypt_cert.results | selectattr('stat', 'defined') | map(attribute='stat') | selectattr('exists', "equalto", False) | list | length > 0
+
+    - name: Test include role
+      include_role:
+        name: jnv.unattended-upgrades
+      vars:
+        unattended_origins_patterns:
+        - 'origin=Ubuntu,archive=${distro_codename}-security'
+        - 'o=Ubuntu,a=${distro_codename}-updates'
+        unattended_package_blacklist: [nginx, nginx-extras]
+        unattended_mail: 'admin@mywebsite.com'
+
+  handlers:
+    - name: restart nginx
+      service: name=nginx state=restarted  
+    - name: start nginx
+      service: name=nginx state=started

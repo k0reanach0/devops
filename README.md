@@ -400,3 +400,49 @@ Ansible should be used to manage your configs, and make sure they're consistent 
 
 Docker should be used to standardize your base services (nginx, PHP, etc). Definitely modularize this part rather than one custom container that has all services in it. Also, Docker compose can help you tie all these services together to form the overall platform that serves all of your sites.
 
+Everything should be code. You should be able to git clone a repo and spin up as much of your infrastructure as possible. I'll try to break down different methods of approach.
+
+If you're spinning up physical servers then you're going to be using pxe. Should you try to automate FOG, use Cobbler, Foreman/Katello, or just write your own pxe implementation in python?
+
+Virtual servers are a bit easier. Automate pulling a cloud-init image, importing it as a template, deploying the template, and doing any extra provisioning after. Though, you should keep in mind how you manage your hypervisor.
+
+Docker images are a bit easier than virtual servers if you're not doing anything custom. Just pull a ready made docker image, set your env flags, configure your reverse proxy and off you go. You could write up some code to install docker-ce, create a network, pull a linuxserver nginx/letsencrypt image. Have it make a wildcard cert, deploy some apps, configure the nginx reverse proxy for those apps, and be good to go. Throw something like watchtower on there and everything stays up to date automatically.
+
+If you're using cloud providers then should you learn terraform, try to do it with ansible/salt, or go balls deep with boto3? Should you just run an RDS instance or try to save money by spinning up an EC2 box and running the database on it? Are you making IAM keys for every little thing or are you using hashicorp vault? Should you have hashicorp vault generating IAM keys for your apps? Should you build your own EC2 images and deploy those or should you pull a basic 16.04 template and write chef opsworks recipes that provision everything and autoscale.
+
+Why would you pick ansible over salt over chef over whatever else? How do you manage your inventory when you have 10 hosts in one datacenter, 100 in 2, 1000 in 10? How does that influence your choice in config management tools?
+
+Once everything is set up how do you monitor it? How do you automate monitoring it? Can you template out graphana? Can you hook into zabbix's API? Are both part of your deployment process?
+
+This kind of turned into a ramble but I think the questions are valid and the points can help you if you're looking to learn how to do shit right. Try and do something like HomelabOS yourself. Work through the issues and see what you learn. You'll hit problems you wouldn't have thought of before and learn from it.
+
+I would like to set up CI for a new Python project using Github/Travis CI. The flow for that would be to create a github repo, create a travis yml file, and a Dockerfile (which specifies base image, ports to expose, installs anything on requirements.txt and sets env variables) - side question - how is requirements.txt populated with Docker? If I'm not using pipenv, do I need to manually enter in dependencies?
+
+​
+
+Okay, great. I've got a repo. I've got a travis yml file, a Dockerfile, my code has unit tests that I can usually run off the command line e.g. -​
+
+python -m unittest discover
+
+Then if these pass, I'd want to push the image to dockerhub or something.​
+
+I'm a little confused as to how to get the tests to run? The repo is pulled with the code+DockerFile+yaml file, then do you build an image, then somehow run the unit tests inside the container, then if they pass (I believe if they error the build stops - Side question - Is the Git PUSH reverted here?) - if they pass, then you push the image to dockerhub or whatever.
+
+You got the general idea right. You've got essentially 2 options -- you can run the tests using Travis's "script" tag (allowing it to manage dependencies and such -- so a lot of that config goes in .travis.yml), or you can manage it yourself by doing it as part of the dockerfile build, and just have travis work with the container.
+
+My first tasks were to work with the ops team to improve the existing deployment pipeline and to draw up a list of characteristics we’d want from our architecture:
+
+able to do small, incremental deployments
+deployments should be fast, and requires no downtime
+no lock-step deployments
+features can be deployed independently
+features are loosely coupled through messages
+minimise cost for unused resources
+minimise ops effort
+
+From here we decided on a service-oriented architecture, and Amazon Lambda seemed the perfect tool for the job given the workloads we had:
+
+lots of APIs, all HTTPS, no ultra-low latency requirement
+lots of background tasks, many of which has soft-realtime requirement (eg. distributing post to follower’s timeline)
+
+https://hackernoon.com/yubls-road-to-serverless-part-2-testing-and-ci-cd-72b2e583fe64
