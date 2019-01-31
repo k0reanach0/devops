@@ -1,0 +1,12 @@
+This post is excellent but I can't help wanting to mention for those out there who think this is a lot of stuff to use to achieve CI/CD also check out Gitlab CI.... Free tier has 2000 minutes/month, docker-in-docker for building containers (I've found kaniko and buildah weren't as easy to use as they seemed from CI), an included docker registry, and quite possibly the most legible and feature packed YAML-based CI configuration I've ever seen.
+
+Most importantly you can build this functionality up gradually, in particular I'd suggest:
+
+Write `gitlab-ci.yml` such that you can: build your code on checkin (every branch)
+Update `gitlab-ci.yml` such that you can: test your code on checkin (unit & integration, i.e. "fast" tests)
+Update `gitlab-ci.yml` such that you can: Run E2E tests on merge requests with the newly merge_requests feature -- this will likely require reading up on Gitlab CI services, which is a really awesome way of running other containers alongside your tests (i.e. need a minio instance to do some E2E S3 tests? run minio/minio in your config!)
+Update `gitlab-ci.yml` and add/use `dind` (docker in docker) as a CI service such that you can: Build docker containers on pushes of very specific branches or tags (`staging`/`production` branches or `vX.X.X` branches)
+Update `gitlab-ci.yml` and your repositorie's secret variables to actually deploy with terraform when you push to specific branches/tags (how you do this can vary, you could make a completely separate `<project>-infra>`repo or a `infra/` folder inside your current project, whichever. Gitlab also let's you trigger pipelines in other projects.
+This is essentially the same thing you're doing with CodeBuild/CodePipeline/ECS/Terraform as in the article, but notice how just about every step above involves edits to `gitlab-ci.yml` -- I find it much easier to iterate through writing working files than trying to learn about and set up all these AWS-specific things but that's just me. I think it helps as a basis for if/when you do move to AWS specific stuff as well (since what you're doing doesn't change, just how you're doing it). More importantly, you get to step up in complexity gradually.
+
+I do not work for Gitlab (though I did recently launch a gitlab/jenkins service that sells runners), but I'm posting this comment because my knee jerk reaction was "why is there like four different technologies on there just to do CI/CD".

@@ -446,3 +446,28 @@ lots of APIs, all HTTPS, no ultra-low latency requirement
 lots of background tasks, many of which has soft-realtime requirement (eg. distributing post to follower’s timeline)
 
 https://hackernoon.com/yubls-road-to-serverless-part-2-testing-and-ci-cd-72b2e583fe64
+
+As a DevOps you should be able to handle these tools/paradigms: SCM, CI, Deployment, Cloud, Monitoring, Database Management, Repository Management, Configuration/Provisioning, Release Management, Logging, Build, Test, Containerization, Collaboration, Security. Read more about these here -> https://xebialabs.com/periodic-table-of-devops-tools/
+
+Usually you should take care of any process starting with your developers pushing code into a git. Make git trigger Jenkins jobs, build and test your code, deploy it then on your environments, make sure you have logging everywhere, monitoring to make sure everything stays in parameters, check your security, move your app to Docker, Swarm or Kubernetes for speed, ease of scalability etc.
+
+As a DevOps Engineer I've done both the entire picture of the flow or just small parts from that flow. Either take care of automating some processes through Chef, build infrastructure with Docker/Kubernetes, write integration tests, deploy tools, configure tools and so on.
+
+So from my point of view DevOps Engineer should be able to handle all of the above all the time. Plus for an DevOps Engineer i think that software development should be a requirement. Because you're not logging in a vm, writing 3 commands done. You have to understand the entire flow from code to production, how various parts of your app communicate each other and most important how all of these ties together into your automation. DevOps is also very focused on automating everything.
+
+Do not forget that the main trait of a DevOps is open communication!
+
+
+Imagine the following set of problems:
+
+All your production machines run Ubuntu, but all your developers have Macs. How do you make sure that your developers can test and deploy code without needing to buy a set of Ubuntu servers for development and testing?
+
+You have just enough money to pay for a set of servers. You can choose to host one app per machine, but this is wasteful since your big servers don't see that much activity. How do you maximise the number of independent services running on your servers?
+
+You need to run two applications that support mutually inconsistent runtimes dependencies. App A depends on v11 of a package, but app B can't support anything beyond v10. How do you make sure these two guys can coexist on the same machine?
+
+The answer to each of these problems - reproducibility of environments, maximising server utility and minimising dependency conflicts - is isolating each process in their own "virtual environment", where they can pretend nobody else exists.
+
+Docker is a refinement of that idea that supports virtual environments at the OS layer (so you can segregate entire networks and filesystems from each other) without needing to install a new OS and allows you to distribute built virtual environments effortlessly in a Git-like fashion.
+
+So basically virtual machines but slimmer and sexier.
